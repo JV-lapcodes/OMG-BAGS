@@ -156,6 +156,7 @@ function CheckoutForm({ clientSecret }) {
 
 export default function Checkout() {
     const [clientSecret, setClientSecret] = useState("");
+    const [initError, setInitError] = useState("");
     const { cartItems } = useContext(CartContext);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -183,6 +184,7 @@ export default function Checkout() {
                 setClientSecret(data.clientSecret);
             } catch (error) {
                 console.error("Failed to initialize payment", error);
+                setInitError(error.response?.data?.error || error.response?.data?.message || "Failed to connect to payment gateway. Please verify your Stripe API Keys.");
             }
         };
 
@@ -191,15 +193,25 @@ export default function Checkout() {
 
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Checkout securely</h1>
+            <h1 className="text-3xl font-black text-black uppercase tracking-widest mb-8 text-center">Checkout securely</h1>
             {clientSecret ? (
                 <Elements stripe={stripePromise}>
                     <CheckoutForm clientSecret={clientSecret} />
                 </Elements>
+            ) : initError ? (
+                <div className="flex justify-center flex-col items-center min-h-[40vh]">
+                    <div className="text-black bg-white p-6 rounded-none border-2 border-black mt-4 font-black uppercase tracking-widest text-xs text-center max-w-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <span className="text-red-600 block mb-2 text-lg">⚠️ Gateway Error</span>
+                        {initError}
+                        <div className="mt-4 pt-4 border-t border-gray-200 text-[10px] text-gray-500 font-bold">
+                            Diagnostic: Your backend failed to generate a Stripe Client Secret. Ensure your STRIPE_SECRET_KEY environment variable is configured natively in Render or your local .env file.
+                        </div>
+                    </div>
+                </div>
             ) : (
                 <div className="flex justify-center flex-col items-center min-h-[40vh]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-                    <p className="text-gray-500 font-medium">Initializing encrypted connection...</p>
+                    <div className="animate-spin rounded-none h-12 w-12 border-b-4 border-l-4 border-black mb-4"></div>
+                    <p className="text-black font-black uppercase tracking-widest text-xs">Initializing Secure Gateway...</p>
                 </div>
             )}
         </div>
